@@ -1,6 +1,6 @@
 -- =============================================================================
 --  06_seed.sql  —— 初始化演示数据
---  依赖：01~05 已执行；需要 pgcrypto（只用于生成演示文件的 SHA-256）
+--  依赖：01~05 已执行；使用内置 sha256()，不需要额外扩展
 --
 --  演示数据覆盖验收要求：
 --    * 1 个研究所（另加 1 个对照研究所）+ 9 个人员账号
@@ -14,8 +14,6 @@
 SET search_path TO srdp, public;
 SET client_min_messages = warning;
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- 生成一条文件元数据；文件内容约定为 'SRDP-DEMO:' || storage_key
 -- scripts/init_db.py 会按同一约定写出真实文件，保证 SHA-256 一致
 CREATE OR REPLACE FUNCTION pg_temp.mock_file(
@@ -27,7 +25,7 @@ CREATE OR REPLACE FUNCTION pg_temp.mock_file(
     INSERT INTO file_object (storage_key, original_name, file_format, size_bytes, sha256, uploaded_by)
     VALUES (p_key, p_name, p_fmt,
             octet_length('SRDP-DEMO:' || p_key),
-            encode(digest('SRDP-DEMO:' || p_key, 'sha256'), 'hex'),
+            encode(sha256(convert_to('SRDP-DEMO:' || p_key, 'UTF8')), 'hex'),
             p_uploader)
     RETURNING file_id;
 $f$;
