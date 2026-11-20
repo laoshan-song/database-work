@@ -2,6 +2,9 @@
 
 面向科研团队与研究所的论文原始数据汇交系统。以“汇交批次”为核心，把论文稿、代码、原始数据、配置、日志、结果等材料固化为不可篡改的快照，经全部作者确认、研究所审核后归档；归档材料可通过“申请—审批—限时/限次授权”受控共享。
 
+> 在线项目主页（GitHub Pages 静态展示）：<https://laoshan-song.github.io/database-work/>
+> GitHub Pages 无法运行 Flask 与 PostgreSQL；完整系统请按下方“快速开始”在本地或云服务器启动。
+
 - 数据库：PostgreSQL 17
 - 后端：Python 3.11+ / Flask 3.1 / psycopg 3
 - 前端：Bootstrap 5（本地静态资源）
