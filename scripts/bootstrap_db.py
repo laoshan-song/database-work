@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import os
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -52,8 +53,7 @@ def with_search_path(conninfo: str) -> str:
     return make_conninfo(**dict(params, options=options))
 
 
-def schema_ready(conn: psycopg.Connection) -> bool:
-    row = conn.execute(
+def schema_ready(conn: psycopg.Connection) -> bool:    row = conn.execute(
         "SELECT to_regclass('srdp.submission_batch') IS NOT NULL AS ok"
     ).fetchone()
     return bool(row and row[0])
@@ -101,9 +101,24 @@ def ensure_demo_files(conn: psycopg.Connection) -> None:
     print(f"[bootstrap] 演示文件：新生成 {written}，已存在 {skipped}，目录 {upload_dir}")
 
 
+def connect_with_retry(url: str, attempts: int = 20, delay: float = 2.0) -> psycopg.Connection:
+    last_error: Exception | None = None
+    for index in range(1, attempts + 1):
+        try:
+            return psycopg.connect(url, autocommit=True)
+        except psycopg.OperationalError as exc:
+            last_error = exc
+            print(
+                f"[bootstrap] 数据库暂未就绪，{delay:.0f}s 后重试 ({index}/{attempts})",
+                flush=True,
+            )
+            time.sleep(delay)
+    raise SystemExit(f"数据库连接失败：{last_error}")
+
+
 def main() -> None:
     url = with_search_path(database_url())
-    with psycopg.connect(url, autocommit=True) as conn:
+    with connect_with_retry(url) as conn:
         conn.execute("SELECT pg_advisory_lock(%s)", (LOCK_KEY,))
         try:
             if schema_ready(conn):
