@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}工作台 · 汇交管理平台{% endblock %}
+{% block page_title %}工作台{% endblock %}
+{% block page_sub %}待办、我的论文与审核提醒{% endblock %}
+
+{% block content %}
+
+{% if stats %}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon"><i class="bi bi-inbox"></i></div>
+      <div>
+        <div class="stat-value">{{ stats.pending_batches }}</div>
+        <div class="stat-label">待受理 / 审核中的批次</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:#fdf1e2;color:#9a6a00;"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <div class="stat-value">{{ stats.pending_access }}</div>
+        <div class="stat-label">待审批访问申请</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:#e6f5ec;color:#17734a;"><i class="bi bi-check2-circle"></i></div>
+      <div>
+        <div class="stat-value">{{ owned|length }}</div>
+        <div class="stat-label">我负责的论文</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:#efe9fb;color:#5b3fa8;"><i class="bi bi-bell"></i></div>
+      <div>
+        <div class="stat-value">{{ unread or 0 }}</div>
+        <div class="stat-label">未读通知</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-12 col-xl-7">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-check2-square me-1"></i>我的待确认（{{ todos|length }}）</span>
+        <span class="small text-muted fw-normal">逐人确认 · 冻结后内容不可变</span>
+      </div>
+      {% if todos %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>论文</th><th>轮次</th><th>我的状态</th><th>批次状态</th><th class="text-end">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in todos %}
+            <tr>
+              <td class="text-truncate" style="max-width:260px;">{{ t.title }}</td>
+              <td>第 {{ t.round_no }} 轮</td>
+              <td>{{ m.confirm_badge(t.current_state) }}</td>
+              <td>{{ m.batch_badge(t.batch_status) }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-primary" href="{{ url_for('batches.batch_detail', batch_id=t.batch_id) }}">去处理</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        {{ m.empty('当前没有待确认的批次') }}
+      {% endif %}
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <span><i class="bi bi-person-workspace me-1"></i>我负责的论文</span>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('papers.list_papers') }}">全部论文</a>
+      </div>
+      {% if owned %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr><th>论文</th><th>当前批次</th><th>确认进度</th><th>最近更新</th></tr>
+          </thead>
+          <tbody>
+            {% for p in owned %}
+            <tr>
+              <td>
+                <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=p.paper_id) }}">{{ p.title }}</a>
+                <div class="small text-muted">{{ p.institute_name }}</div>
+              </td>
+              <td>
+                {% if p.batch_status %}
+                  {{ m.batch_badge(p.batch_status) }}<div class="small text-muted">第 {{ p.current_round }} 轮</div>
+                {% else %}<span class="text-muted">未开始</span>{% endif %}
+              </td>
+              <td style="min-width:130px;">{{ m.progress(p.confirmed_count or 0, p.author_count or 0) }}</td>
+              <td class="small text-muted">{{ p.last_updated_at|dt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        {{ m.empty('还没有以你为负责人的论文') }}
+      {% endif %}
+    </div>
+
+    {% if stats %}
+    <div class="card mt-3">
+      <div class="card-header">
+        <span><i class="bi bi-clipboard-check me-1"></i>待审核批次</span>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">审核工作台</a>
+      </div>
+      {% if admin_batches %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>论文</th><th>研究所</th><th>轮次</th><th>状态</th><th class="text-end">操作</th></tr></thead>
+          <tbody>
+            {% for b in admin_batches %}
+            <tr>
+              <td>{{ b.title }}</td>
+              <td class="small text-muted">{{ b.institute_name }}</td>
+              <td>第 {{ b.round_no }} 轮</td>
+              <td>{{ m.batch_badge(b.status) }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-primary" href="{{ url_for('batches.batch_detail', batch_id=b.batch_id) }}">审核</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}{{ m.empty('没有待处理的批次') }}{% endif %}
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <span><i class="bi bi-shield-check me-1"></i>待审批访问申请</span>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.access_requests') }}">全部申请</a>
+      </div>
+      {% if pending_access %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>申请人</th><th>材料</th><th>论文</th><th>申请时间</th><th class="text-end">操作</th></tr></thead>
+          <tbody>
+            {% for r in pending_access %}
+            <tr>
+              <td>{{ r.requester }}</td>
+              <td>{{ r.material_name }}</td>
+              <td class="text-truncate" style="max-width:220px;">{{ r.title }}</td>
+              <td class="small text-muted">{{ r.created_at|dt }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-primary" href="{{ url_for('admin.access_requests') }}">审批</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}{{ m.empty('没有待审批的访问申请') }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-bell me-1"></i>通知</span>
+        <form method="post" action="{{ url_for('main.read_notifications') }}">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">全部标为已读</button>
+        </form>
+      </div>
+      {% if notifications %}
+      <div class="list-group list-group-flush">
+        {% for n in notifications %}
+        <a class="list-group-item list-group-item-action py-2"
+           href="{{ url_for('main.open_notification', notification_id=n.notification_id) }}">
+          <div class="d-flex justify-content-between gap-2">
+            <span class="fw-semibold small">{{ n.title }}</span>
+            {% if not n.read_at %}<span class="badge text-bg-danger">新</span>{% endif %}
+          </div>
+          <div class="small text-muted">{{ n.body }}</div>
+          <div class="small text-muted">{{ n.created_at|dt }}</div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}{{ m.empty('暂无通知') }}{% endif %}
+    </div>
+
+    {% if authored %}
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-people me-1"></i>我参与的论文</span></div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>论文</th><th>我的角色</th><th>批次</th></tr></thead>
+          <tbody>
+            {% for p in authored %}
+            <tr>
+              <td class="text-truncate" style="max-width:200px;">
+                <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=p.paper_id) }}">{{ p.title }}</a>
+              </td>
+              <td class="small">{{ '负责人' if p.owner_person_id == g.user.person_id else '共同作者' }}</td>
+              <td>{{ m.batch_badge(p.batch_status) if p.batch_status else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <span><i class="bi bi-key me-1"></i>我的访问申请</span>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('access.my_access') }}">全部</a>
+      </div>
+      {% if my_requests %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>材料</th><th>申请</th><th>授权</th></tr></thead>
+          <tbody>
+            {% for r in my_requests %}
+            <tr>
+              <td class="small">
+                <div>{{ r.material_name }} V{{ r.version_no }}</div>
+                <div class="text-muted text-truncate" style="max-width:150px;">{{ r.title }}</div>
+              </td>
+              <td>
+                <span class="badge text-bg-{{ 'secondary' if r.status == 'PENDING' else ('success' if r.status == 'APPROVED' else 'danger') }}">
+                  {{ {'PENDING':'待审批','APPROVED':'已批准','REJECTED':'已拒绝','CANCELLED':'已撤回'}.get(r.status, r.status) }}
+                </span>
+              </td>
+              <td>{% if r.grant_status %}{{ m.grant_badge(r.grant_status) }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}{{ m.empty('还没有提交过访问申请') }}{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

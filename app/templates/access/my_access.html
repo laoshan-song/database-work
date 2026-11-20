@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}我的申请与授权{% endblock %}
+{% block page_title %}我的申请与授权{% endblock %}
+{% block page_sub %}按材料版本授权 · 有效期与下载次数受控{% endblock %}
+
+{% block content %}
+{% set cu = g.user %}
+<div class="card mb-3">
+  <div class="card-header"><span><i class="bi bi-key me-1"></i>我的授权（{{ grants|length }}）</span></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>论文 / 材料</th><th>版本</th><th>范围</th><th>状态</th><th>有效期至</th><th>下载次数</th><th class="text-end">操作</th></tr>
+      </thead>
+      <tbody>
+        {% for g in grants %}
+        <tr>
+          <td>
+            <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=g.paper_id) }}">{{ g.title }}</a>
+            <div class="small text-muted">{{ g.material_name }}</div>
+          </td>
+          <td>V{{ g.version_no }}</td>
+          <td><span class="badge text-bg-secondary">{{ '下载' if g.scope == 'DOWNLOAD' else '查看' }}</span></td>
+          <td>{{ m.grant_badge(g.grant_status) }}</td>
+          <td class="small text-muted">{{ g.valid_to|dt }}</td>
+          <td class="small">{{ g.download_count }} / {{ g.max_downloads if g.max_downloads else '不限' }}</td>
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end">
+              {% if g.grant_status == 'ACTIVE' %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('papers.download_material', material_version_id=g.material_version_id) }}">
+                <i class="bi bi-download"></i>
+              </a>
+              {% endif %}
+              {% if g.grant_status != 'REVOKED' and (cu.is_system_admin or cu.admin_institutes) %}
+              <form method="post" action="{{ url_for('access.revoke_grant', grant_id=g.grant_id) }}"
+                    onsubmit="return confirm('确认撤销该授权？');">
+                <button class="btn btn-sm btn-outline-danger" type="submit">撤销</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">{{ m.empty('你还没有获得任何材料授权') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span><i class="bi bi-send me-1"></i>我的申请（{{ requests|length }}）</span>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('access.browse') }}">浏览可申请材料</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>论文 / 材料</th><th>版本</th><th>申请状态</th><th>申请时间</th><th>审批意见</th><th>授权状态</th><th class="text-end">操作</th></tr>
+      </thead>
+      <tbody>
+        {% for r in requests %}
+        <tr>
+          <td>
+            <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=r.paper_id) }}">{{ r.title }}</a>
+            <div class="small text-muted">{{ r.material_name }}（{{ MATERIAL_TYPES.get(r.material_type, r.material_type) }}）</div>
+          </td>
+          <td>V{{ r.version_no }}</td>
+          <td>
+            <span class="badge text-bg-{{ 'warning' if r.status == 'PENDING' else ('success' if r.status == 'APPROVED' else ('secondary' if r.status == 'CANCELLED' else 'danger')) }}">
+              {{ {'PENDING':'待审批','APPROVED':'已批准','REJECTED':'已拒绝','CANCELLED':'已撤回'}.get(r.status, r.status) }}
+            </span>
+          </td>
+          <td class="small text-muted">{{ r.created_at|dt }}</td>
+          <td class="small">{{ r.decision_comment or '—' }}</td>
+          <td>{% if r.grant_status %}{{ m.grant_badge(r.grant_status) }}{% else %}—{% endif %}</td>
+          <td class="text-end">
+            {% if r.status == 'PENDING' %}
+            <form method="post" action="{{ url_for('access.cancel', request_id=r.request_id) }}">
+              <button class="btn btn-sm btn-outline-secondary" type="submit">撤回申请</button>
+            </form>
+            {% elif r.grant_status == 'ACTIVE' %}
+            <a class="btn btn-sm btn-primary" href="{{ url_for('papers.download_material', material_version_id=r.material_version_id) }}">下载</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">{{ m.empty('还没有提交过访问申请') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body border-top small text-muted">
+    授权只对申请时的具体材料版本有效；论文上传新版本后需要重新申请。
+  </div>
+</div>
+{% endblock %}

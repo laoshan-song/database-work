@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑人员' if person else '新增人员' }}{% endblock %}
+{% block page_title %}{{ '编辑人员信息' if person else '新增人员' }}{% endblock %}
+{% block page_sub %}{{ person.name if person else '人员档案与登录账号分离，创建后可单独开通账号' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:760px;">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {% if not person %}
+      <div class="col-md-6">
+        <label class="form-label">工号 / 学号 <span class="text-danger">*</span></label>
+        <input class="form-control" name="employee_no" required maxlength="32">
+      </div>
+      {% endif %}
+      <div class="col-md-6">
+        <label class="form-label">姓名 <span class="text-danger">*</span></label>
+        <input class="form-control" name="name" required maxlength="64" value="{{ person.name if person else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">邮箱 <span class="text-danger">*</span></label>
+        <input class="form-control" type="email" name="email" required maxlength="128"
+               value="{{ person.email if person else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">电话</label>
+        <input class="form-control" name="phone" maxlength="32" value="{{ person.phone if person else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">人员类别</label>
+        <select class="form-select" name="person_category">
+          {% for code, name in PERSON_CATEGORY.items() %}
+          <option value="{{ code }}" {{ 'selected' if person and person.person_category == code }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">职称 / 年级</label>
+        <input class="form-control" name="title_grade" maxlength="64"
+               value="{{ person.title_grade if person and person.title_grade else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">所属研究所</label>
+        <select class="form-select" name="home_institute_id">
+          {% for i in institutes %}
+          <option value="{{ i.institute_id }}"
+            {{ 'selected' if (person and person.home_institute_id == i.institute_id) or (not person and default_inst == i.institute_id) }}>
+            {{ i.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">外部作者可留空或选择合作单位；留空时请先创建研究所。</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">入职日期</label>
+        <input class="form-control" type="date" name="join_date"
+               value="{{ person.join_date if person and person.join_date else '' }}">
+      </div>
+      {% if person %}
+      <div class="col-md-3">
+        <label class="form-label">离职日期</label>
+        <input class="form-control" type="date" name="leave_date"
+               value="{{ person.leave_date if person.leave_date else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">状态</label>
+        <select class="form-select" name="status">
+          {% for code, name in PERSON_STATUS.items() %}
+          <option value="{{ code }}" {{ 'selected' if person.status == code }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="col-12 d-flex gap-2 pt-2">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check2 me-1"></i>{{ '保存修改' if person else '创建人员' }}
+        </button>
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for('org.person_detail', person_id=person.person_id) if person else url_for('org.institutes') }}">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

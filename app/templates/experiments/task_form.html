@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}新建实验任务{% endblock %}
+{% block page_title %}新建实验任务{% endblock %}
+{% block page_sub %}{{ paper.title }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:860px;">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-12">
+        <label class="form-label">任务名称 <span class="text-danger">*</span></label>
+        <input class="form-control" name="title" required maxlength="200">
+      </div>
+      <div class="col-12">
+        <label class="form-label">实验目的</label>
+        <textarea class="form-control" name="purpose" rows="2" placeholder="要验证的假设或目标"></textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">实验方案</label>
+        <textarea class="form-control" name="scheme" rows="3" placeholder="数据、参数、对照组与重复次数"></textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">评价指标</label>
+        <input class="form-control" name="metrics" maxlength="300" placeholder="如：准确率、F1、耗时">
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">创建任务</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('papers.paper_detail', paper_id=paper.paper_id) }}">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

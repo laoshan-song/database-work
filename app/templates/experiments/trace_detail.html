@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}追溯链路 · {{ r.result_name }}{% endblock %}
+{% block page_title %}追溯链路{% endblock %}
+{% block page_sub %}{{ r.paper_title }} · {{ r.task_title }} · 运行 {{ r.run_label }}{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="d-flex flex-wrap align-items-stretch gap-2">
+      <div class="border rounded p-3" style="min-width:200px;background:#fde4e6;">
+        <div class="small text-muted">结果文件</div>
+        <div class="fw-semibold">{{ r.result_name }} V{{ r.result_version_no }}</div>
+        <div class="small">{{ r.paper_figure_no or '未标注图表' }}</div>
+      </div>
+      <div class="d-flex align-items-center px-1 text-muted"><i class="bi bi-arrow-right"></i></div>
+      <div class="border rounded p-3" style="min-width:190px;background:#e2ecfb;">
+        <div class="small text-muted">实验运行</div>
+        <div class="fw-semibold">{{ r.run_label }}</div>
+        <div class="small text-muted">{{ r.started_at|dt }}</div>
+        <div class="small"><span class="badge text-bg-{{ 'success' if r.run_status == 'SUCCESS' else 'secondary' }}">{{ r.run_status }}</span></div>
+      </div>
+      <div class="d-flex align-items-center px-1 text-muted"><i class="bi bi-arrow-right"></i></div>
+      <div class="d-flex flex-column gap-2 flex-grow-1">
+        <div class="border rounded px-3 py-2" style="background:#e8f1f9;">
+          <span class="small text-muted me-2">代码</span>
+          <span class="fw-semibold">{{ r.code_name }}</span>
+          <span class="badge text-bg-primary">V{{ r.code_version_no }}</span>
+          <span class="sha ms-2" title="{{ r.code_sha256 }}">{{ r.code_sha256[:12] }}…</span>
+        </div>
+        <div class="border rounded px-3 py-2" style="background:#e6f5ec;">
+          <span class="small text-muted me-2">数据</span>
+          <span class="fw-semibold">{{ r.data_name }}</span>
+          <span class="badge text-bg-success">V{{ r.data_version_no }}</span>
+          <span class="sha ms-2" title="{{ r.data_sha256 }}">{{ r.data_sha256[:12] }}…</span>
+        </div>
+        <div class="border rounded px-3 py-2" style="background:#fff4d6;">
+          <span class="small text-muted me-2">配置</span>
+          {% if r.config_name %}<span class="fw-semibold">{{ r.config_name }}</span> <span class="badge text-bg-warning">V{{ r.config_version_no }}</span>{% else %}<span class="text-muted">未登记</span>{% endif %}
+          <span class="small text-muted ms-3 me-2">日志</span>
+          {% if r.log_name %}<span class="fw-semibold">{{ r.log_name }}</span> <span class="badge text-bg-secondary">V{{ r.log_version_no }}</span>{% else %}<span class="text-muted">未登记</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-sliders me-1"></i>运行参数</span></div>
+      <div class="card-body">
+        <pre class="small mb-0 bg-light p-2 rounded" style="white-space:pre-wrap;">{{ r.parameters|tojson(indent=2) }}</pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-pc-display me-1"></i>运行环境</span></div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="k">硬件</div><div class="v">{{ r.hardware_env or '—' }}</div>
+          <div class="k">软件</div><div class="v">{{ r.software_env or '—' }}</div>
+          <div class="k">开始 / 结束</div><div class="v">{{ r.started_at|dt }} ~ {{ r.ended_at|dt }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-card-text me-1"></i>结论</span></div>
+      <div class="card-body">
+        <div class="mb-2"><span class="text-muted small">指标摘要：</span>{{ r.metric_summary or '—' }}</div>
+        <div><span class="text-muted small">结论：</span>{{ r.conclusion or '—' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

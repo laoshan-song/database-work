@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ inst.name }}{% endblock %}
+{% block page_title %}{{ inst.name }}{% endblock %}
+{% block page_sub %}{{ inst.code }} · {{ inst.contact_email or '未填写联系邮箱' }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-12 col-xl-8">
+    <div class="card">
+      <div class="card-header">
+        <span><i class="bi bi-people me-1"></i>人员（{{ persons|length }}）</span>
+        {% if can_admin %}
+        <a class="btn btn-sm btn-primary" href="{{ url_for('org.person_new', institute_id=inst.institute_id) }}">
+          <i class="bi bi-person-plus me-1"></i>新增人员
+        </a>
+        {% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr><th>工号</th><th>姓名</th><th>类别 / 职称</th><th>账号</th><th>论文</th><th class="text-end">操作</th></tr>
+          </thead>
+          <tbody>
+            {% for p in persons %}
+            <tr>
+              <td class="small text-muted">{{ p.employee_no }}</td>
+              <td><a class="text-decoration-none" href="{{ url_for('org.person_detail', person_id=p.person_id) }}">{{ p.name }}</a></td>
+              <td class="small">
+                {{ PERSON_CATEGORY.get(p.person_category, p.person_category) }}
+                {% if p.title_grade %}<span class="text-muted">· {{ p.title_grade }}</span>{% endif %}
+              </td>
+              <td class="small">
+                {% if p.username %}
+                  <code>{{ p.username }}</code>
+                  {% if not p.is_enabled %}<span class="badge text-bg-danger">已停用</span>{% endif %}
+                {% else %}<span class="text-muted">未开通</span>{% endif %}
+              </td>
+              <td>{{ p.paper_count }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('org.person_detail', person_id=p.person_id) }}">详情</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">{{ m.empty('该所暂无人员') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-journal-text me-1"></i>论文与汇交状态</span></div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>论文</th><th>负责人</th><th>批次</th><th>进度</th><th>更新</th></tr></thead>
+          <tbody>
+            {% for p in papers %}
+            <tr>
+              <td>
+                <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=p.paper_id) }}">{{ p.title }}</a>
+              </td>
+              <td class="small">{{ p.owner_name }}</td>
+              <td>
+                {% if p.batch_status %}{{ m.batch_badge(p.batch_status) }}
+                  <div class="small text-muted">第 {{ p.current_round }} 轮</div>
+                {% else %}<span class="text-muted small">未开始</span>{% endif %}
+              </td>
+              <td style="min-width:120px;">{{ m.progress(p.confirmed_count or 0, p.author_count or 0) }}</td>
+              <td class="small text-muted">{{ p.last_updated_at|dt }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">{{ m.empty('该所暂无论文') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-4">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-shield-check me-1"></i>管理员</span></div>
+      <div class="card-body">
+        {% for a in admins %}
+        <div class="d-flex justify-content-between align-items-center py-1">
+          <span>{{ a.name }}</span><code class="small">{{ a.username }}</code>
+        </div>
+        {% else %}
+        <div class="text-muted small">该所尚未指定管理员</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-inbox me-1"></i>待处理批次</span></div>
+      {% if pending_batches %}
+      <div class="list-group list-group-flush">
+        {% for b in pending_batches %}
+        <a class="list-group-item list-group-item-action py-2"
+           href="{{ url_for('batches.batch_detail', batch_id=b.batch_id) }}">
+          <div class="d-flex justify-content-between gap-2">
+            <span class="small fw-semibold text-truncate">{{ b.title }}</span>
+            {{ m.batch_badge(b.status) }}
+          </div>
+          <div class="small text-muted">第 {{ b.round_no }} 轮 · 提交于 {{ b.submitted_at|dt }}</div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}{{ m.empty('没有待处理批次') }}{% endif %}
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-info-circle me-1"></i>说明</span></div>
+      <div class="card-body small text-muted">
+        论文归属以“主管研究所”为准；人员可通过任职关系（含有效期）跨所参与。
+        跨所任职过期后不再获得该所内部材料的访问权。
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

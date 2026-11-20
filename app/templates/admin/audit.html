@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}审计日志{% endblock %}
+{% block page_title %}审计日志{% endblock %}
+{% block page_sub %}关键业务操作留痕 · 日志只增不改（触发器强制）{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-6 col-md-3">
+        <label class="form-label">对象类型</label>
+        <select class="form-select form-select-sm" name="object_type">
+          <option value="">全部</option>
+          {% for o in object_types %}
+          <option value="{{ o.object_type }}" {{ 'selected' if object_type == o.object_type }}>{{ o.object_type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label">动作</label>
+        <select class="form-select form-select-sm" name="action">
+          <option value="">全部</option>
+          {% for a in actions %}
+          <option value="{{ a.action }}" {{ 'selected' if action == a.action }}>{{ a.action }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label">关键词</label>
+        <input class="form-control form-control-sm" name="q" value="{{ keyword }}" placeholder="对象 ID / 操作人 / 摘要">
+      </div>
+      <div class="col-12 col-md-2 d-flex gap-1">
+        <button class="btn btn-sm btn-primary flex-grow-1" type="submit">查询</button>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.audit') }}">重置</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span>最近 {{ rows|length }} 条</span></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>时间</th><th>操作人</th><th>对象</th><th>动作</th><th>摘要</th><th>ID</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="small text-muted text-nowrap">{{ r.created_at|dt('%Y-%m-%d %H:%M:%S') }}</td>
+          <td class="small">{{ r.actor_name or '系统' }}</td>
+          <td class="small"><code>{{ r.object_type }}</code></td>
+          <td><span class="badge text-bg-secondary">{{ r.action }}</span></td>
+          <td class="small" style="max-width:460px;">
+            {% if r.summary %}
+            <code class="text-muted" style="font-size:11px;word-break:break-all;">{{ r.summary|tojson }}</code>
+            {% else %}—{% endif %}
+          </td>
+          <td class="small text-muted">{{ r.object_id }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">{{ m.empty('没有符合条件的日志') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

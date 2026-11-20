@@ -1,0 +1,41 @@
+{% macro batch_badge(code) -%}
+<span class="badge text-bg-{{ STATUS_COLOR.get(code, 'secondary') }}">{{ BATCH_STATUS.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro confirm_badge(code) -%}
+<span class="badge text-bg-{{ CONFIRM_COLOR.get(code, 'secondary') }}">{{ CONFIRM_STATE.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro material_badge(code) -%}
+<span class="badge text-bg-{{ MATERIAL_COLOR.get(code, 'secondary') }}">{{ MATERIAL_TYPES.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro visibility_badge(code) -%}
+<span class="badge text-bg-{{ VISIBILITY_COLOR.get(code, 'secondary') }}">{{ VISIBILITY.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro grant_badge(code) -%}
+<span class="badge text-bg-{{ GRANT_COLOR.get(code, 'secondary') }}">{{ GRANT_STATUS.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro progress(confirmed, total) -%}
+{% set pct = (confirmed * 100 / total) if total else 0 %}
+<div class="d-flex align-items-center gap-2">
+  <div class="progress flex-grow-1" style="height:8px; min-width:90px;">
+    <div class="progress-bar bg-{{ 'success' if total and confirmed == total else 'warning' }}"
+         style="width: {{ pct }}%"></div>
+  </div>
+  <span class="small text-nowrap">{{ confirmed }}/{{ total }}</span>
+</div>
+{%- endmacro %}
+
+{% macro empty(text='暂无数据') -%}
+<div class="empty-state">
+  <i class="bi bi-inbox"></i>
+  <div>{{ text }}</div>
+</div>
+{%- endmacro %}
+
+{% macro user_link(person_id, name) -%}
+<a href="{{ url_for('org.person_detail', person_id=person_id) }}" class="text-decoration-none">{{ name }}</a>
+{%- endmacro %}

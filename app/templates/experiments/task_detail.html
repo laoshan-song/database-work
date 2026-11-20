@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ task.title }}{% endblock %}
+{% block page_title %}{{ task.title }}{% endblock %}
+{% block page_sub %}
+<a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=task.paper_id) }}">{{ task.paper_title }}</a>
+· 创建人 {{ task.creator }} · {{ task.created_at|dt }}
+{% endblock %}
+
+{% block topbar_meta %}
+<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('experiments.trace') }}">全局追溯视图</a>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="detail-grid">
+      <div class="k">实验目的</div><div class="v">{{ task.purpose or '—' }}</div>
+      <div class="k">实验方案</div><div class="v">{{ task.scheme or '—' }}</div>
+      <div class="k">评价指标</div><div class="v">{{ task.metrics or '—' }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    <span><i class="bi bi-play-circle me-1"></i>运行记录（{{ runs|length }}）</span>
+    <span class="small text-muted fw-normal">运行引用的版本固定，不随材料更新变化</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>运行</th><th>代码</th><th>数据</th><th>配置</th><th>日志</th><th>状态</th><th>时间</th><th>结果</th></tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr>
+          <td class="fw-semibold">{{ r.run_label }}</td>
+          <td class="small">{{ r.code_name }} <span class="badge text-bg-secondary">V{{ r.code_version }}</span></td>
+          <td class="small">{{ r.data_name }} <span class="badge text-bg-secondary">V{{ r.data_version }}</span></td>
+          <td class="small">{% if r.config_name %}{{ r.config_name }} <span class="badge text-bg-secondary">V{{ r.config_version }}</span>{% else %}—{% endif %}</td>
+          <td class="small">{% if r.log_name %}{{ r.log_name }} <span class="badge text-bg-secondary">V{{ r.log_version }}</span>{% else %}—{% endif %}</td>
+          <td><span class="badge text-bg-{{ 'success' if r.status == 'SUCCESS' else ('danger' if r.status == 'FAILED' else 'secondary') }}">{{ r.status }}</span></td>
+          <td class="small text-muted">{{ r.started_at|dt }}<div>{{ r.ended_at|dt }}</div></td>
+          <td>{{ r.result_count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8">{{ m.empty('还没有登记运行') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if perms.experiment %}
+  <div class="card-body border-top">
+    <form method="post" action="{{ url_for('experiments.run_new', task_id=task.task_id) }}" class="row g-2">
+      <div class="col-12"><div class="section-title mb-1">登记一次运行</div></div>
+      <div class="col-md-2">
+        <label class="form-label">运行编号</label>
+        <input class="form-control form-control-sm" name="run_label" required placeholder="R1">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">代码版本</label>
+        <select class="form-select form-select-sm" name="code_version_id" required>
+          {% for v in versions if v.material_type == 'CODE' %}
+          <option value="{{ v.material_version_id }}">{{ v.name }} V{{ v.version_no }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">原始数据版本</label>
+        <select class="form-select form-select-sm" name="data_version_id" required>
+          {% for v in versions if v.material_type == 'RAW_DATA' %}
+          <option value="{{ v.material_version_id }}">{{ v.name }} V{{ v.version_no }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">配置版本</label>
+        <select class="form-select form-select-sm" name="config_version_id">
+          <option value="">（无）</option>
+          {% for v in versions if v.material_type == 'CONFIG' %}
+          <option value="{{ v.material_version_id }}">{{ v.name }} V{{ v.version_no }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">日志版本</label>
+        <select class="form-select form-select-sm" name="log_version_id">
+          <option value="">（无）</option>
+          {% for v in versions if v.material_type == 'LOG' %}
+          <option value="{{ v.material_version_id }}">{{ v.name }} V{{ v.version_no }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">参数（JSON 对象）</label>
+        <input class="form-control form-control-sm" name="parameters" value='{"epochs": 10, "seed": 42}'>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">开始时间</label>
+        <input class="form-control form-control-sm" type="datetime-local" name="started_at" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">结束时间</label>
+        <input class="form-control form-control-sm" type="datetime-local" name="ended_at">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">硬件环境</label>
+        <input class="form-control form-control-sm" name="hardware_env" placeholder="CPU / 内存 / GPU">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">软件环境</label>
+        <input class="form-control form-control-sm" name="software_env" placeholder="Python / 框架 / CUDA 版本">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">状态</label>
+        <select class="form-select form-select-sm" name="status">
+          <option value="SUCCESS">SUCCESS</option>
+          <option value="FAILED">FAILED</option>
+          <option value="ABORTED">ABORTED</option>
+          <option value="RUNNING">RUNNING</option>
+        </select>
+      </div>
+      <div class="col-12 d-grid d-md-flex justify-content-md-end">
+        <button class="btn btn-sm btn-primary" type="submit">登记运行</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-7">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-bullseye me-1"></i>实验结果</span></div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>运行</th><th>结果材料</th><th>图表</th><th>指标摘要</th><th></th></tr></thead>
+          <tbody>
+            {% for r in results %}
+            <tr>
+              <td>{{ r.run_label }}</td>
+              <td class="small">{{ r.result_name }} <span class="badge text-bg-secondary">V{{ r.version_no }}</span>
+                <div class="text-muted">{{ r.original_name }}</div>
+              </td>
+              <td>{{ r.paper_figure_no or '—' }}</td>
+              <td class="small">{{ r.metric_summary or '—' }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('experiments.trace_detail', result_id=r.result_id) }}">追溯</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">{{ m.empty('还没有登记结果') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if perms.experiment %}
+  <div class="col-12 col-lg-5">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-plus-circle me-1"></i>登记结果（关联到运行）</span></div>
+      <div class="card-body">
+        {% if runs %}
+        <form method="post" class="row g-2" id="resultForm">
+          <div class="col-6">
+            <label class="form-label">运行</label>
+            <select class="form-select form-select-sm" name="run_id" id="runSelect">
+              {% for r in runs %}
+              <option value="{{ r.run_id }}">{{ r.run_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">结果材料版本</label>
+            <select class="form-select form-select-sm" name="result_version_id" required>
+              {% for v in versions if v.material_type in ('RESULT', 'FIGURE') %}
+              <option value="{{ v.material_version_id }}">{{ v.name }} V{{ v.version_no }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">图表编号</label>
+            <input class="form-control form-control-sm" name="paper_figure_no" placeholder="图3">
+          </div>
+          <div class="col-6">
+            <label class="form-label">指标摘要</label>
+            <input class="form-control form-control-sm" name="metric_summary" placeholder="准确率 0.92">
+          </div>
+          <div class="col-12">
+            <label class="form-label">结论</label>
+            <textarea class="form-control form-control-sm" name="conclusion" rows="2"></textarea>
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-sm btn-primary" type="submit"
+                    onclick="this.form.action='/runs/' + document.getElementById('runSelect').value + '/results'">
+              登记结果
+            </button>
+          </div>
+        </form>
+        {% else %}
+        <div class="text-muted small">请先登记一次运行，再关联结果文件。</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

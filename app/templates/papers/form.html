@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑论文' if paper else '新建论文' }}{% endblock %}
+{% block page_title %}{{ '编辑论文信息' if paper else '新建论文' }}{% endblock %}
+{% block page_sub %}{{ paper.title if paper else '论文创建后自动将该负责人设为第一作者，可再调整名单' }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:900px;">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <div class="col-12">
+        <label class="form-label">论文标题 <span class="text-danger">*</span></label>
+        <input class="form-control" name="title" required maxlength="300"
+               value="{{ paper.title if paper else '' }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">主管研究所</label>
+        {% if paper %}
+        <input class="form-control" value="{{ paper.institute_name or paper.institute_id }}" disabled>
+        <div class="form-text">主管研究所创建后不可更改，以保证汇交归属稳定。</div>
+        {% else %}
+        <select class="form-select" name="institute_id">
+          {% for i in institutes %}
+          <option value="{{ i.institute_id }}" {{ 'selected' if g.user.home_institute_id == i.institute_id }}>
+            {{ i.name }}
+          </option>
+          {% endfor %}
+        </select>
+        {% endif %}
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">投稿状态</label>
+        <select class="form-select" name="submission_status">
+          {% for code, name in SUBMISSION_STATUS.items() %}
+          <option value="{{ code }}" {{ 'selected' if paper and paper.submission_status == code }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">材料公开范围</label>
+        <select class="form-select" name="visibility_level">
+          {% for code, name in VISIBILITY.items() %}
+          <option value="{{ code }}" {{ 'selected' if paper and paper.visibility_level == code else ('selected' if not paper and code == 'PROJECT') }}>
+            {{ name }}
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">归档后才对范围内用户开放。</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">关键词</label>
+        <input class="form-control" name="keywords" maxlength="300"
+               value="{{ paper.keywords if paper and paper.keywords else '' }}" placeholder="以分号分隔">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">研究领域</label>
+        <input class="form-control" name="research_field" maxlength="128"
+               value="{{ paper.research_field if paper and paper.research_field else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">期刊 / 会议</label>
+        <input class="form-control" name="venue" maxlength="200"
+               value="{{ paper.venue if paper and paper.venue else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">DOI</label>
+        <input class="form-control" name="doi" maxlength="128"
+               value="{{ paper.doi if paper and paper.doi else '' }}" placeholder="可留空，全局唯一">
+      </div>
+      <div class="col-12">
+        <label class="form-label">摘要</label>
+        <textarea class="form-control" name="abstract" rows="5">{{ paper.abstract if paper and paper.abstract else '' }}</textarea>
+      </div>
+
+      <div class="col-12 d-flex gap-2 pt-2">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-check2 me-1"></i>{{ '保存修改' if paper else '创建论文' }}
+        </button>
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for('papers.paper_detail', paper_id=paper.paper_id) if paper else url_for('papers.list_papers') }}">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

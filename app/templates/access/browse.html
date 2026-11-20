@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}共享材料{% endblock %}
+{% block page_title %}共享材料{% endblock %}
+{% block page_sub %}仅展示已归档论文的材料 · 下载受授权范围限制{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-12 col-md-5">
+        <label class="form-label">关键词</label>
+        <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="论文标题 / 材料名称">
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label">材料类型</label>
+        <select class="form-select form-select-sm" name="type">
+          <option value="">全部</option>
+          {% for code, name in MATERIAL_TYPES.items() %}
+          <option value="{{ code }}" {{ 'selected' if material_type == code }}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-4 d-flex gap-1">
+        <button class="btn btn-sm btn-primary flex-grow-1" type="submit"><i class="bi bi-search me-1"></i>查询</button>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('access.browse') }}">重置</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('access.my_access') }}">我的授权</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr><th>论文</th><th>研究所</th><th>公开范围</th><th>材料</th><th>版本</th><th>大小</th><th>我的权限</th><th class="text-end">操作</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td style="max-width:280px;">
+            <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=r.paper_id) }}">{{ r.paper_title }}</a>
+          </td>
+          <td class="small text-muted">{{ r.institute_name }}</td>
+          <td>{{ m.visibility_badge(r.visibility_level) }}</td>
+          <td>
+            {{ m.material_badge(r.material_type) }}
+            <div class="small">{{ r.material_name }}</div>
+          </td>
+          <td>V{{ r.version_no }}</td>
+          <td class="small">{{ r.size_bytes|size }}</td>
+          <td class="small">
+            {% if r.mode and r.mode.startswith('GRANT:') %}
+              <span class="badge text-bg-success">已授权</span>
+            {% elif r.mode == 'PUBLIC' %}
+              <span class="badge text-bg-success">公开</span>
+            {% elif r.mode == 'INSTITUTE' %}
+              <span class="badge text-bg-info">所内可见</span>
+            {% elif r.mode %}
+              <span class="badge text-bg-primary">{{ r.mode }}</span>
+            {% else %}
+              <span class="badge text-bg-secondary">需申请</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end">
+              {% if r.mode and r.mode != 'GRANT:VIEW' %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('papers.download_material', material_version_id=r.material_version_id) }}">
+                <i class="bi bi-download"></i>
+              </a>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('papers.material_detail', material_version_id=r.material_version_id) }}">详情</a>
+              {% if not r.mode %}
+              <button class="btn btn-sm btn-outline-primary" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#apply-{{ r.material_version_id }}">申请</button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% if not r.mode %}
+        <tr class="collapse" id="apply-{{ r.material_version_id }}">
+          <td colspan="8" class="bg-light">
+            <form method="post" action="{{ url_for('access.apply', material_version_id=r.material_version_id) }}" class="row g-2">
+              <div class="col-md-9">
+                <input class="form-control form-control-sm" name="reason" required
+                       placeholder="申请理由：用途、范围与期限（将提交给主管研究所管理员）">
+              </div>
+              <div class="col-md-3 d-grid">
+                <button class="btn btn-sm btn-primary" type="submit">提交访问申请</button>
+              </div>
+            </form>
+          </td>
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr><td colspan="8">{{ m.empty('没有符合条件的已归档材料') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body border-top small text-muted">
+    公开范围为“公开/研究所内部”的论文归档后可直接下载；其余需申请并由管理员批准具体版本、有效期与下载次数。
+  </div>
+</div>
+{% endblock %}

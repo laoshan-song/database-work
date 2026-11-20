@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}批次对比{% endblock %}
+{% block page_title %}批次差异对比{% endblock %}
+{% block page_sub %}{{ left.title_snapshot }}{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">对照批次</div>
+        <div class="fw-semibold">第 {{ left.round_no }} 轮 {{ m.batch_badge(left.status) }}</div>
+        <div class="small text-muted mt-1">发起 {{ left.created_at|dt }} · 作者 {{ left.author_count }}</div>
+        <a class="btn btn-sm btn-outline-secondary mt-2" href="{{ url_for('batches.batch_detail', batch_id=left.batch_id) }}">查看该批次</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="card">
+      <div class="card-body">
+        <div class="small text-muted">当前批次</div>
+        <div class="fw-semibold">第 {{ right.round_no }} 轮 {{ m.batch_badge(right.status) }}</div>
+        <div class="small text-muted mt-1">发起 {{ right.created_at|dt }} · 作者 {{ right.author_count }}</div>
+        <a class="btn btn-sm btn-outline-secondary mt-2" href="{{ url_for('batches.batch_detail', batch_id=right.batch_id) }}">查看该批次</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span><i class="bi bi-arrow-left-right me-1"></i>差异（{{ diff|length }}）</span></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>类别</th><th>对象</th><th>变化</th></tr></thead>
+      <tbody>
+        {% for category, name, change in diff %}
+        <tr>
+          <td><span class="badge text-bg-{{ 'primary' if category == '作者' else 'info' }}">{{ category }}</span></td>
+          <td>{{ name }}</td>
+          <td>{{ change }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3">{{ m.empty('两个批次的作者与材料清单一致') }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-body border-top small text-muted">
+    对比以批次快照为准，因此即使论文当前作者名单或材料版本已变化，也不影响历史轮次的差异判定。
+  </div>
+</div>
+{% endblock %}

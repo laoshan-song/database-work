@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ person.name }}{% endblock %}
+{% block page_title %}{{ person.name }}{% endblock %}
+{% block page_sub %}{{ person.employee_no }} · {{ PERSON_CATEGORY.get(person.person_category, person.person_category) }}{% if person.title_grade %} · {{ person.title_grade }}{% endif %}{% endblock %}
+
+{% block topbar_meta %}
+{% if can_admin %}
+<a class="btn btn-sm btn-primary" href="{{ url_for('org.person_edit', person_id=person.person_id) }}">
+  <i class="bi bi-pencil-square me-1"></i>编辑资料
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-12 col-xl-5">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-person-vcard me-1"></i>基本信息</span></div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="k">姓名</div><div class="v">{{ person.name }}</div>
+          <div class="k">工号</div><div class="v">{{ person.employee_no }}</div>
+          <div class="k">邮箱</div><div class="v">{{ person.email }}</div>
+          <div class="k">电话</div><div class="v">{{ person.phone or '—' }}</div>
+          <div class="k">人员类别</div><div class="v">{{ PERSON_CATEGORY.get(person.person_category, person.person_category) }}</div>
+          <div class="k">职称 / 年级</div><div class="v">{{ person.title_grade or '—' }}</div>
+          <div class="k">状态</div><div class="v">
+            <span class="badge text-bg-{{ 'success' if person.status == 'ACTIVE' else 'secondary' }}">
+              {{ PERSON_STATUS.get(person.status, person.status) }}
+            </span>
+          </div>
+          <div class="k">入职日期</div><div class="v">{{ person.join_date|d }}</div>
+          <div class="k">离职日期</div><div class="v">{{ person.leave_date|d }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <span><i class="bi bi-key me-1"></i>登录账号</span>
+        {% if can_admin and account %}
+        <form method="post" action="{{ url_for('org.account_toggle', account_id=account.account_id) }}">
+          <button class="btn btn-sm btn-outline-{{ 'danger' if account.is_enabled else 'success' }}" type="submit">
+            {{ '停用账号' if account.is_enabled else '启用账号' }}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if account %}
+        <div class="detail-grid">
+          <div class="k">用户名</div><div class="v"><code>{{ account.username }}</code></div>
+          <div class="k">状态</div><div class="v">
+            <span class="badge text-bg-{{ 'success' if account.is_enabled else 'danger' }}">
+              {{ '启用' if account.is_enabled else '已停用' }}
+            </span>
+            {% if account.disabled_reason %}<span class="small text-muted">（{{ account.disabled_reason }}）</span>{% endif %}
+          </div>
+          <div class="k">平台运维</div><div class="v">{{ '是' if account.is_system_admin else '否' }}</div>
+          <div class="k">最近登录</div><div class="v">{{ account.last_login_at|dt }}</div>
+        </div>
+        {% if can_admin %}
+        <hr>
+        <form method="post" action="{{ url_for('org.account_password', account_id=account.account_id) }}" class="row g-2 align-items-end">
+          <div class="col-8">
+            <label class="form-label">重置密码</label>
+            <input class="form-control form-control-sm" type="password" name="password" minlength="6" required placeholder="至少 6 位">
+          </div>
+          <div class="col-4 d-grid">
+            <button class="btn btn-sm btn-outline-primary" type="submit">重置</button>
+          </div>
+        </form>
+        {% endif %}
+        {% else %}
+        <p class="text-muted small mb-2">该人员尚未开通登录账号。</p>
+        {% if can_admin %}
+        <form method="post" action="{{ url_for('org.account_create', person_id=person.person_id) }}" class="row g-2">
+          <div class="col-6">
+            <label class="form-label">用户名</label>
+            <input class="form-control form-control-sm" name="username" required minlength="3">
+          </div>
+          <div class="col-6">
+            <label class="form-label">初始密码</label>
+            <input class="form-control form-control-sm" type="password" name="password" required minlength="6">
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-sm btn-primary" type="submit">开通账号</button>
+          </div>
+        </form>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-diagram-2 me-1"></i>任职关系（含有效期）</span></div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>研究所</th><th>职务</th><th>有效期</th><th>主要</th></tr></thead>
+          <tbody>
+            {% for af in affiliations %}
+            <tr>
+              <td class="small">{{ af.institute_name }}</td>
+              <td class="small">{{ af.role_title or '—' }}</td>
+              <td class="small text-muted">{{ af.valid_from|d }} ~ {{ af.valid_to|d if af.valid_to else '至今' }}</td>
+              <td>{% if af.is_primary %}<span class="badge text-bg-primary">主要</span>{% endif %}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">{{ m.empty('暂无任职记录') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if can_admin %}
+      <div class="card-body border-top">
+        <form method="post" action="{{ url_for('org.affiliation_add', person_id=person.person_id) }}" class="row g-2">
+          <div class="col-12">
+            <label class="form-label">新增跨所任职</label>
+            <select class="form-select form-select-sm" name="institute_id" required>
+              {% for i in institutes %}
+              <option value="{{ i.institute_id }}">{{ i.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" name="role_title" placeholder="职务（可选）">
+          </div>
+          <div class="col-3">
+            <input class="form-control form-control-sm" type="date" name="valid_from" title="生效日期">
+          </div>
+          <div class="col-3">
+            <input class="form-control form-control-sm" type="date" name="valid_to" title="结束日期（可空）">
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-sm btn-outline-primary" type="submit">添加任职</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-person-badge me-1"></i>角色（可撤销，历史留痕）</span></div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>角色</th><th>范围</th><th>状态</th><th>授予时间</th><th></th></tr></thead>
+          <tbody>
+            {% for r in roles %}
+            <tr>
+              <td class="small">{{ r.role_name }}</td>
+              <td class="small text-muted">{{ r.institute_name or '全局' }}</td>
+              <td>
+                <span class="badge text-bg-{{ 'success' if r.is_active else 'secondary' }}">
+                  {{ '生效' if r.is_active else '已撤销' }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ r.granted_at|dt }}</td>
+              <td class="text-end">
+                {% if r.is_active and can_admin %}
+                <form method="post" action="{{ url_for('org.role_revoke', account_id=account.account_id, account_role_id=r.account_role_id) }}">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">撤销</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">{{ m.empty('暂无角色') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if account and can_admin %}
+      <div class="card-body border-top">
+        <form method="post" action="{{ url_for('org.role_grant', account_id=account.account_id) }}" class="row g-2">
+          <div class="col-5">
+            <label class="form-label">授予角色</label>
+            <select class="form-select form-select-sm" name="role_code">
+              {% for code, name in ROLE_NAMES.items() %}
+              <option value="{{ code }}">{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-7">
+            <label class="form-label">研究所范围（所级角色必填）</label>
+            <select class="form-select form-select-sm" name="institute_id">
+              <option value="">（全局角色留空）</option>
+              {% for i in institutes %}
+              <option value="{{ i.institute_id }}">{{ i.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <input class="form-control form-control-sm" name="reason" placeholder="授予原因（可选）">
+          </div>
+          <div class="col-12 d-grid">
+            <button class="btn btn-sm btn-outline-primary" type="submit">授予角色</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-12 col-xl-7">
+    <div class="card">
+      <div class="card-header"><span><i class="bi bi-pen me-1"></i>参与的论文（{{ papers|length }}）</span></div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>论文</th><th>作者序</th><th>批次</th><th>进度</th></tr></thead>
+          <tbody>
+            {% for p in papers %}
+            <tr>
+              <td>
+                <a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=p.paper_id) }}">{{ p.title }}</a>
+                <div class="small text-muted">{{ p.institute_name }} · 负责人 {{ p.owner_name }}</div>
+              </td>
+              <td>
+                第 {{ p.author_order }} 作者
+                {% if p.is_corresponding %}<span class="badge text-bg-info">通讯</span>{% endif %}
+              </td>
+              <td>{{ m.batch_badge(p.batch_status) if p.batch_status else '—' }}</td>
+              <td style="min-width:120px;">{{ m.progress(p.confirmed_count or 0, p.author_count or 0) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">{{ m.empty('暂未作为作者参与论文') }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% if owned %}
+    <div class="card mt-3">
+      <div class="card-header"><span><i class="bi bi-star me-1"></i>负责的论文（{{ owned|length }}）</span></div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead><tr><th>论文</th><th>批次</th><th>确认进度</th><th>最近更新</th></tr></thead>
+          <tbody>
+            {% for p in owned %}
+            <tr>
+              <td><a class="text-decoration-none" href="{{ url_for('papers.paper_detail', paper_id=p.paper_id) }}">{{ p.title }}</a></td>
+              <td>{{ m.batch_badge(p.batch_status) if p.batch_status else '未开始' }}</td>
+              <td style="min-width:120px;">{{ m.progress(p.confirmed_count or 0, p.author_count or 0) }}</td>
+              <td class="small text-muted">{{ p.last_updated_at|dt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

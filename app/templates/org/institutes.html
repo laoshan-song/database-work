@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}研究所与人员{% endblock %}
+{% block page_title %}研究所与人员{% endblock %}
+{% block page_sub %}多研究所管理 · 跨所任职有效期 · 账号与角色{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  {% for i in institutes %}
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <span><i class="bi bi-building me-1"></i>{{ i.name }}</span>
+        <span class="badge text-bg-secondary">{{ i.code }}</span>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">{{ i.intro or '暂无简介' }}</p>
+        <div class="row text-center g-2">
+          <div class="col-4">
+            <div class="stat-value" style="font-size:19px;">{{ i.person_count }}</div>
+            <div class="stat-label">在岗人员</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value" style="font-size:19px;">{{ i.paper_count }}</div>
+            <div class="stat-label">论文</div>
+          </div>
+          <div class="col-4">
+            <div class="stat-value" style="font-size:19px;">{{ i.archived_count }}</div>
+            <div class="stat-label">已归档批次</div>
+          </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <a class="btn btn-sm btn-primary" href="{{ url_for('org.institute_detail', institute_id=i.institute_id) }}">查看详情</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('papers.list_papers', institute_id=i.institute_id) }}">该所论文</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('org.person_new', institute_id=i.institute_id) }}">新增人员</a>
+        </div>
+        <div class="small text-muted mt-2">{{ i.contact_email or '' }}</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">{{ m.empty('暂无研究所') }}</div>
+  {% endfor %}
+</div>
+{% endblock %}
