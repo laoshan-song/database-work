@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科研论文原始数据汇交管理平台</title>
+<meta name="description" content="以汇交批次为核心，提供材料版本追溯、作者确认、研究所审核与受控数据共享的科研数据汇交平台。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
+<style>
+:root{
+  --bg:#07111f; --bg2:#0b1a2f; --card:#0f2238; --line:rgba(148,190,233,.16);
+  --text:#e8f1fb; --muted:#93a9c2; --cyan:#46d9d2; --blue:#5aa7ff; --amber:#ffc46b;
+  --ok:#5ee0a0; --danger:#ff7b8a; --max:1120px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgba(70,217,210,.16), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgba(90,167,255,.18), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+header.top{
+  position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:rgba(7,17,31,.78);border-bottom:1px solid var(--line);
+}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.brand .mark{
+  width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--cyan),var(--blue));color:#04101d;font-size:17px;font-weight:900;
+}
+nav{display:flex;gap:22px;font-size:14px;color:var(--muted)}
+nav a{color:var(--muted)}
+nav a:hover{color:var(--text);text-decoration:none}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:11px;
+  border:1px solid var(--line);color:var(--text);font-weight:600;font-size:14px;
+  background:rgba(255,255,255,.03);transition:.2s;white-space:nowrap;
+}
+.btn:hover{transform:translateY(-1px);border-color:rgba(70,217,210,.55);text-decoration:none}
+.btn.primary{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#04101d;border:none}
+.hero{padding:82px 0 54px;position:relative;overflow:hidden}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cyan);border:1px solid rgba(70,217,210,.3);
+  background:rgba(70,217,210,.07);padding:6px 12px;border-radius:999px;margin-bottom:22px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.15;letter-spacing:-.02em;max-width:900px}
+h1 .grad{background:linear-gradient(100deg,var(--cyan),var(--blue) 58%,#b794ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--muted);font-size:clamp(16px,1.6vw,19px);max-width:760px;margin:22px 0 30px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:52px}
+.stat{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:14px;padding:16px 14px}
+.stat b{display:block;font-size:26px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.notice{
+  margin:6px 0 0;border:1px solid rgba(255,196,107,.28);background:rgba(255,196,107,.07);
+  border-radius:14px;padding:16px 18px;color:#f4dcc0;font-size:14px;display:flex;gap:12px;align-items:flex-start;
+}
+.notice .ico{font-size:18px;line-height:1.4}
+section{padding:66px 0;border-top:1px solid rgba(148,190,233,.09)}
+.kicker{color:var(--cyan);font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+h2{font-size:clamp(26px,3.2vw,38px);line-height:1.25;margin:10px 0 14px;letter-spacing:-.01em}
+.sub{color:var(--muted);max-width:760px;margin-bottom:30px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
+  border:1px solid var(--line);border-radius:16px;padding:22px;position:relative;overflow:hidden;
+}
+.card:before{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(70,217,210,.55),transparent);opacity:.55}
+.card h3{font-size:17px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14px}
+.card .ico{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:14px;
+  background:rgba(70,217,210,.1);border:1px solid rgba(70,217,210,.2);font-size:18px;
+}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;counter-reset:step}
+.step{
+  background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:18px 14px;
+  position:relative;
+}
+.step:after{
+  content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);
+  color:rgba(70,217,210,.6);font-size:16px;z-index:2;
+}
+.step:last-child:after{display:none}
+.step .n{
+  width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;
+  background:rgba(90,167,255,.15);color:var(--blue);border:1px solid rgba(90,167,255,.3);margin-bottom:10px;
+}
+.step b{display:block;font-size:14px;margin-bottom:4px}
+.step span{font-size:12px;color:var(--muted)}
+.schema{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:stretch}
+.tablebox{background:#0a1729;border:1px solid var(--line);border-radius:14px;padding:18px}
+.tablebox h3{font-size:14px;color:var(--cyan);margin-bottom:12px;letter-spacing:.04em}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-size:12px;padding:5px 9px;border-radius:8px;background:rgba(90,167,255,.09);border:1px solid rgba(90,167,255,.16);color:#c8dcf7}
+.chip.hot{background:rgba(70,217,210,.1);border-color:rgba(70,217,210,.22);color:#c9fbf7}
+pre{
+  background:#081426;border:1px solid var(--line);border-radius:14px;padding:18px;
+  overflow:auto;font-family:"Cascadia Code",Consolas,monospace;font-size:13px;line-height:1.65;color:#cfe4ff;
+}
+pre .c{color:#6f8aa6}
+pre .k{color:#ff9db0}
+pre .s{color:#9be9b8}
+pre .f{color:#8fc6ff}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+td code{color:var(--amber);font-family:Consolas,monospace;font-size:12px}
+.yes{color:var(--ok)}.no{color:#5c728b}
+.bench{display:grid;gap:14px}
+.bench-row{display:grid;grid-template-columns:190px 1fr 92px;gap:12px;align-items:center;font-size:13px}
+.bar{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--blue))}
+.bench-row b{font-variant-numeric:tabular-nums;text-align:right;color:var(--cyan)}
+.accounts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.acc{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px}
+.acc code{color:var(--amber);font-family:Consolas,monospace}
+.acc span{color:var(--muted);font-size:12px;margin-left:auto}
+footer{border-top:1px solid var(--line);padding:36px 0 52px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(94,224,160,.1);border:1px solid rgba(94,224,160,.25);color:var(--ok);margin-left:8px;vertical-align:middle}
+@media (max-width:900px){
+  nav{display:none}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .g3{grid-template-columns:repeat(2,1fr)}
+  .flow{grid-template-columns:repeat(2,1fr)}
+  .step:after{display:none}
+  .schema,.g2{grid-template-columns:1fr}
+  .accounts{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:560px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:1fr}
+  .accounts{grid-template-columns:1fr}
+  .bench-row{grid-template-columns:120px 1fr 74px}
+  .hero{padding-top:56px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="mark">SR</span> 科研数据汇交平台</div>
+    <nav>
+      <a href="#features">功能</a>
+      <a href="#database">数据库</a>
+      <a href="#bench">性能</a>
+      <a href="#start">运行</a>
+    </nav>
+    <a class="btn" href="https://github.com/laoshan-song/database-work" target="_blank" rel="noopener">GitHub 源码 ↗</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="eyebrow"><span class="dot"></span> 科研数据基础设施 · 在线平台</div>
+    <h1>让论文里的每一个结果，<br><span class="grad">都能回到它诞生的那一版数据</span></h1>
+    <p class="lead">
+      以“汇交批次”为核心，把论文稿、代码、原始数据、配置、日志与结果固化为不可篡改的快照；
+      经全部作者确认、研究所审核后归档，并通过“申请—审批—限时/限次授权”实现受控共享。
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="https://github.com/laoshan-song/database-work/blob/master/docs/项目报告.md" target="_blank" rel="noopener">阅读完整项目报告</a>
+      <a class="btn" href="#start">本地运行</a>
+      <a class="btn" href="https://github.com/laoshan-song/database-work" target="_blank" rel="noopener">查看数据库脚本</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>28</b><span>数据表</span></div>
+      <div class="stat"><b>8</b><span>视图</span></div>
+      <div class="stat"><b>16</b><span>业务存储过程</span></div>
+      <div class="stat"><b>26</b><span>触发器</span></div>
+      <div class="stat"><b>31</b><span>查询索引</span></div>
+      <div class="stat"><b>25</b><span>自动化测试</span></div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="kicker">Capabilities</div>
+      <h2>不是网盘，而是可审计的汇交流水线</h2>
+      <p class="sub">材料版本、作者确认、研究所审核、访问授权四条链路互相咬合，任何一步都可回溯、可验证、不可抵赖。</p>
+      <div class="grid g3">
+        <div class="card">
+          <div class="ico">🧬</div>
+          <h3>版本只增不改</h3>
+          <p>材料版本、论文版本、审核记录与审计日志一旦写入即不可更新或删除；补充材料只能新增版本，历史结果始终可复现。</p>
+        </div>
+        <div class="card">
+          <div class="ico">🔒</div>
+          <h3>批次冻结快照</h3>
+          <p>发起确认时冻结标题、作者、材料哈希与论文稿版本；后续修改论文不会影响已送审内容，杜绝“送审后换数据”。</p>
+        </div>
+        <div class="card">
+          <div class="ico">✅</div>
+          <h3>全员作者确认</h3>
+          <p>支持 3 位内部作者 + 1 位外部作者逐一确认；撤回、异议均保留历史。全部确认后才能提交，异议即终止本轮。</p>
+        </div>
+        <div class="card">
+          <div class="ico">🏛️</div>
+          <h3>跨研究所隔离</h3>
+          <p>研究所管理员只能受理、审核、审批本所论文；对照研究所账号用于验证越权拦截，权限校验同时落在过程与页面。</p>
+        </div>
+        <div class="card">
+          <div class="ico">🔗</div>
+          <h3>实验结果全链路追溯</h3>
+          <p>结果 → 运行 → 代码/数据/配置/日志的具体版本。论文图 3 使用的数据版本、哈希与运行环境一目了然。</p>
+        </div>
+        <div class="card">
+          <div class="ico">📥</div>
+          <h3>受限数据受控共享</h3>
+          <p>访问申请必须填写理由，管理员按“有效期 + 下载次数”批准；每次下载登记 IP 与时间，超次、过期、撤销都会拒绝。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="database">
+    <div class="wrap">
+      <div class="kicker">Database Design</div>
+      <h2>规则下沉到 PostgreSQL</h2>
+      <p class="sub">页面只负责收集参数与展示结果；状态机、冻结、快照回填、授权来源与审计全部由存储过程和触发器保证。</p>
+      <div class="schema">
+        <div class="tablebox">
+          <h3>组织与人员</h3>
+          <div class="chips">
+            <span class="chip">institute</span><span class="chip">person</span><span class="chip">person_affiliation</span>
+            <span class="chip">account</span><span class="chip">role</span><span class="chip">account_role</span>
+          </div>
+          <h3 style="margin-top:18px">论文与材料</h3>
+          <div class="chips">
+            <span class="chip">paper</span><span class="chip">paper_author</span><span class="chip">paper_maintainer</span>
+            <span class="chip">file_object</span><span class="chip">paper_version</span><span class="chip">material</span>
+            <span class="chip">material_version</span>
+          </div>
+          <h3 style="margin-top:18px">实验与汇交</h3>
+          <div class="chips">
+            <span class="chip hot">experiment_task</span><span class="chip hot">experiment_run</span><span class="chip hot">experiment_result</span>
+            <span class="chip hot">submission_batch</span><span class="chip hot">batch_author</span><span class="chip hot">batch_material</span>
+            <span class="chip hot">batch_experiment</span><span class="chip hot">confirmation</span><span class="chip hot">admin_review</span>
+          </div>
+          <h3 style="margin-top:18px">共享与审计</h3>
+          <div class="chips">
+            <span class="chip">access_request</span><span class="chip">access_grant</span><span class="chip">access_log</span>
+            <span class="chip">audit_log</span><span class="chip">notification</span><span class="chip">mail_outbox</span>
+          </div>
+        </div>
+        <div>
+          <pre><span class="c">-- 批次状态机：非法流转在任何入口都会被拒绝</span>
+<span class="k">CREATE OR REPLACE FUNCTION</span> trg_batch_status_guard()
+<span class="k">RETURNS trigger LANGUAGE</span> plpgsql <span class="k">AS</span> $$
+<span class="k">BEGIN</span>
+  <span class="k">IF</span> OLD.status <span class="k">IN</span> (<span class="s">'DISPUTED'</span>,<span class="s">'RETURNED'</span>,
+                  <span class="s">'WITHDRAWN'</span>,<span class="s">'ARCHIVED'</span>) <span class="k">THEN</span>
+    <span class="k">RAISE EXCEPTION</span> <span class="s">'批次已结束，不得再改变状态'</span>;
+  <span class="k">END IF</span>;
+
+  <span class="k">IF NOT</span> (
+       (OLD.status = <span class="s">'DRAFT'</span> <span class="k">AND</span>
+        NEW.status <span class="k">IN</span> (<span class="s">'PENDING_AUTHORS'</span>,<span class="s">'WITHDRAWN'</span>))
+    <span class="k">OR</span> (OLD.status = <span class="s">'UNDER_REVIEW'</span> <span class="k">AND</span>
+        NEW.status <span class="k">IN</span> (<span class="s">'ARCHIVED'</span>,<span class="s">'RETURNED'</span>))
+       <span class="c">-- ... 其余合法路径</span>
+  ) <span class="k">THEN</span>
+    <span class="k">RAISE EXCEPTION</span> <span class="s">'非法的批次状态流转'</span>;
+  <span class="k">END IF</span>;
+  <span class="k">RETURN</span> NEW;
+<span class="k">END</span>;
+$$;</pre>
+          <p class="note">即使有人用 psql 直接 UPDATE，也必须通过同一套规则。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="kicker">Access Control</div>
+      <h2>六类身份，边界清晰</h2>
+      <div class="grid g2">
+        <div class="card">
+          <table>
+            <tr><th>操作</th><th>负责人</th><th>作者</th><th>维护</th><th>所管理员</th><th>使用者</th></tr>
+            <tr><td>创建批次</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td class="yes">本所</td><td class="no">—</td></tr>
+            <tr><td>作者确认</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+            <tr><td>受理 / 审核</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">本所</td><td class="no">—</td></tr>
+            <tr><td>审批数据申请</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">本所</td><td class="no">—</td></tr>
+            <tr><td>下载受限材料</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">本所</td><td class="yes">需授权</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>为什么维护成员没有确认权？</h3>
+          <p>维护成员（如协助整理材料的研究生）可以在授权范围内上传材料、登记实验，但不是论文署名作者，
+             因此不能代替作者确认“这批材料就是论文所用材料”。权限与责任分离，避免“代签”。</p>
+          <h3 style="margin-top:18px">跨所隔离如何验证？</h3>
+          <p>演示数据包含 INST-02 的对照论文与管理员账号。用 INST-02 管理员受理 INST-01 的批次会返回
+             <code style="color:var(--amber)">FORBIDDEN</code>，页面上也会提示“只有主管研究所管理员可以受理”。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="bench">
+    <div class="wrap">
+      <div class="kicker">Performance</div>
+      <h2>索引不是“建了就行”，要拿执行计划说话</h2>
+      <p class="sub">独立压测库：3,003 篇论文、24,018 个材料版本、231,249 条审计日志。每条查询对比“默认计划”与“关闭索引扫描”。</p>
+      <div class="bench">
+        <div class="bench-row"><span>论文列表（研究所 + 时间）</span><div class="bar"><i style="width:6%"></i></div><b>0.034 ms</b></div>
+        <div class="bench-row"><span>作者待办（部分索引）</span><div class="bar"><i style="width:12%"></i></div><b>0.353 ms</b></div>
+        <div class="bench-row"><span>审计日志按对象查询</span><div class="bar"><i style="width:4%"></i></div><b>0.145 ms</b></div>
+        <div class="bench-row"><span>材料最新版本</span><div class="bar"><i style="width:5%"></i></div><b>0.082 ms</b></div>
+        <div class="bench-row"><span>实验结果全链路追溯</span><div class="bar"><i style="width:9%"></i></div><b>0.410 ms</b></div>
+      </div>
+      <div class="grid g3" style="margin-top:18px">
+        <div class="card"><h3>审计日志 ~1000×</h3><p>默认 0.145 ms，关闭索引后并行全表扫描 147.407 ms。</p></div>
+        <div class="card"><h3>实验追溯 ~42×</h3><p>默认 0.410 ms，无索引时多层 Seq Scan 为 17.362 ms。</p></div>
+        <div class="card"><h3>论文列表 ~18×</h3><p>默认 0.034 ms，无索引排序扫描为 0.611 ms。</p></div>
+      </div>
+      <p class="note">完整 E1–E7 计划、Buffers、索引命中统计见仓库 <code style="color:var(--amber)">db/08_explain.sql</code>。</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="kicker">Engineering</div>
+      <h2>数据库之外，也有完整的工程实现</h2>
+      <div class="grid g3">
+        <div class="card"><div class="ico">🧪</div><h3>25 项自动化测试</h3><p>完整流程、约束兜底、权限边界，以及并发提交 / 建批次 / 下载限额。运行 <code style="color:var(--amber)">pytest -q</code> 全部通过。</p></div>
+        <div class="card"><div class="ico">🔐</div><h3>并发安全</h3><p>批次行锁 + 部分唯一索引 + 授权行锁，保证并发提交只有一个成功、下载次数不会被突破。</p></div>
+        <div class="card"><div class="ico">🧾</div><h3>全链路审计</h3><p>创建、确认、提交、受理、审核、授权、下载均留痕；审计日志禁止 UPDATE / DELETE。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="wrap">
+      <div class="kicker">Get Started</div>
+      <h2>三步启动完整系统</h2>
+      <div class="schema">
+        <div>
+          <pre><span class="c"># 1. 安装依赖</span>
+pip install -r requirements.txt
+
+<span class="c"># 2. 创建数据库并导入演示数据</span>
+python scripts/init_db.py
+
+<span class="c"># 3. 启动 Web 应用</span>
+python run.py</pre>
+          <p class="note">默认地址 http://127.0.0.1:5000，统一密码 Demo@2026。需要本机 PostgreSQL 17。</p>
+        </div>
+        <div class="card">
+          <h3>演示账号</h3>
+          <div class="accounts" style="margin-top:12px">
+            <div class="acc"><code>lina</code><span>负责人</span></div>
+            <div class="acc"><code>admin</code><span>所管理员</span></div>
+            <div class="acc"><code>zhaolei</code><span>外部作者</span></div>
+            <div class="acc"><code>chenjing</code><span>作者/维护</span></div>
+            <div class="acc"><code>sunhao</code><span>数据使用者</span></div>
+            <div class="acc"><code>zhengkai</code><span>对照所管理员</span></div>
+          </div>
+          <p class="note">密码统一为 Demo@2026。完整 9 个账号与演示脚本见 README。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="brand" style="margin-bottom:8px"><span class="mark">SR</span> 科研论文原始数据汇交管理平台</div>
+      <div>PostgreSQL 17 · Flask 3.1 · psycopg 3 · Bootstrap 5 <span class="tag">25 tests passed</span></div>
+    </div>
+    <div style="text-align:right">
+      <a href="https://github.com/laoshan-song/database-work" target="_blank" rel="noopener">源码仓库</a> ·
+      <a href="https://github.com/laoshan-song/database-work/blob/master/docs/项目报告.md" target="_blank" rel="noopener">项目报告</a> ·
+      <a href="https://github.com/laoshan-song/database-work/blob/master/README.md" target="_blank" rel="noopener">部署说明</a>
+      <div style="margin-top:6px;font-size:12px">科研数据基础设施 · 演示数据均为虚构</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
