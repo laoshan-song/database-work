@@ -53,7 +53,8 @@ def with_search_path(conninfo: str) -> str:
     return make_conninfo(**dict(params, options=options))
 
 
-def schema_ready(conn: psycopg.Connection) -> bool:    row = conn.execute(
+def schema_ready(conn: psycopg.Connection) -> bool:
+    row = conn.execute(
         "SELECT to_regclass('srdp.submission_batch') IS NOT NULL AS ok"
     ).fetchone()
     return bool(row and row[0])
