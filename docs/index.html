@@ -157,7 +157,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     <div class="brand"><span class="mark">SR</span> 科研数据汇交平台</div>
     <nav>
       <a href="#features">功能</a>
-      <a href="#flow">流程</a>
       <a href="#database">数据库</a>
       <a href="#bench">性能</a>
       <a href="#start">运行</a>
@@ -168,7 +167,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
 <main>
   <div class="wrap hero">
-    <div class="eyebrow"><span class="dot"></span> 数据库系统概论 · 课程大作业</div>
+    <div class="eyebrow"><span class="dot"></span> 科研数据基础设施 · 在线平台</div>
     <h1>让论文里的每一个结果，<br><span class="grad">都能回到它诞生的那一版数据</span></h1>
     <p class="lead">
       以“汇交批次”为核心，把论文稿、代码、原始数据、配置、日志与结果固化为不可篡改的快照；
@@ -237,31 +236,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     </div>
   </section>
 
-  <section id="flow">
-    <div class="wrap">
-      <div class="kicker">Workflow</div>
-      <h2>两轮汇交：退回、补充、再归档</h2>
-      <p class="sub">第 1 轮因运行环境说明缺少 CUDA 版本被退回；第 2 轮补充环境说明 v2 与结果指标 v2，重新确认后归档。所有旧版本与审核意见完整保留。</p>
-      <div class="flow">
-        <div class="step"><div class="n">01</div><b>创建批次</b><span>选择论文稿版本，加入作者与材料</span></div>
-        <div class="step"><div class="n">02</div><b>发起确认</b><span>冻结快照，4 位作者逐一确认</span></div>
-        <div class="step"><div class="n">03</div><b>提交审核</b><span>五类材料齐全后提交研究所</span></div>
-        <div class="step"><div class="n">04</div><b>受理 / 退回</b><span>本所管理员受理，退回必须写意见</span></div>
-        <div class="step"><div class="n">05</div><b>归档 / 共享</b><span>通过后归档，受限材料仍需申请</span></div>
-      </div>
-      <div class="grid g2" style="margin-top:16px">
-        <div class="card">
-          <h3>批次状态机由数据库强制执行</h3>
-          <p>DRAFT → PENDING_AUTHORS → READY_TO_SUBMIT → PENDING_ADMIN → UNDER_REVIEW → ARCHIVED / RETURNED。
-             任何不在图中的状态跳转都会被触发器拒绝，绕过 Web 直接写库同样无效。</p>
-        </div>
-        <div class="card">
-          <h3>退回不是“打回重做”</h3>
-          <p>退回后新建下一轮批次，材料以新版本补充；第 1 轮批次、材料 v1、审核意见与作者确认记录全部保留，可并排对比两轮差异。</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section id="database">
     <div class="wrap">
@@ -424,7 +398,7 @@ python run.py</pre>
       <a href="https://github.com/laoshan-song/database-work" target="_blank" rel="noopener">源码仓库</a> ·
       <a href="https://github.com/laoshan-song/database-work/blob/master/docs/项目报告.md" target="_blank" rel="noopener">项目报告</a> ·
       <a href="https://github.com/laoshan-song/database-work/blob/master/README.md" target="_blank" rel="noopener">部署说明</a>
-      <div style="margin-top:6px;font-size:12px">课程大作业 · 演示数据均为虚构</div>
+      <div style="margin-top:6px;font-size:12px">科研数据基础设施 · 演示数据均为虚构</div>
     </div>
   </div>
 </footer>
