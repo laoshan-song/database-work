@@ -68,6 +68,16 @@ def create_app(config_object=Config):
         REVIEW_ACTION=REVIEW_ACTION,
     )
 
+    @app.get("/healthz")
+    def healthz():
+        from flask import jsonify
+        try:
+            db.query_one("SELECT 1 AS ok")
+        except Exception:  # noqa: BLE001 - 健康检查需要返回 503 触发平台重启
+            app.logger.exception("health check failed")
+            return jsonify(status="error"), 503
+        return jsonify(status="ok")
+
     @app.errorhandler(403)
     def forbidden(err):
         from flask import render_template

@@ -1,0 +1,29 @@
+databases:
+  - name: srdp-db
+    databaseName: srdp
+    user: srdp
+    plan: free
+
+services:
+  - type: web
+    name: database-work
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-prod.txt
+    startCommand: python scripts/bootstrap_db.py && gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: srdp-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SRDP_SEARCH_PATH
+        value: srdp,public
+      - key: SRDP_UPLOAD_DIR
+        value: /tmp/srdp_uploads
+      - key: SRDP_MAX_UPLOAD_MB
+        value: 50

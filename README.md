@@ -2,8 +2,8 @@
 
 面向科研团队与研究所的论文原始数据汇交系统。以“汇交批次”为核心，把论文稿、代码、原始数据、配置、日志、结果等材料固化为不可篡改的快照，经全部作者确认、研究所审核后归档；归档材料可通过“申请—审批—限时/限次授权”受控共享。
 
-> 在线项目主页（GitHub Pages 静态展示）：<https://laoshan-song.github.io/database-work/>
-> GitHub Pages 无法运行 Flask 与 PostgreSQL；完整系统请按下方“快速开始”在本地或云服务器启动。
+> 线上平台：使用 Render 部署完整 Flask + PostgreSQL 系统。
+> GitHub Pages 仅作为平台入口，不托管业务后端。
 
 - 数据库：PostgreSQL 17
 - 后端：Python 3.11+ / Flask 3.1 / psycopg 3
@@ -54,6 +54,27 @@ python run.py
 ```
 
 浏览器访问 <http://127.0.0.1:5000>。
+
+---
+
+## 云端部署（Render）
+
+仓库已内置 `render.yaml`，点击下面的按钮即可创建 Web 服务与 PostgreSQL：
+
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/laoshan-song/database-work)
+
+部署行为：
+
+1. 构建时安装 `requirements-prod.txt`（含 gunicorn）；
+2. 启动时执行 `scripts/bootstrap_db.py`：
+   - 空库自动执行 `db/01_schema.sql` ~ `db/06_seed.sql`；
+   - 已有 schema 则跳过建表，**不会清空业务数据**；
+   - 免费实例重启后，根据 `file_object` 记录自动重建演示文件。
+3. `/healthz` 同时检查应用与数据库，供平台做健康探测。
+
+> 免费实例的文件系统是临时的，用户自行上传的文件在重启后会丢失；生产环境请挂载持久磁盘或改用对象存储。演示数据文件会自动重建，不受影响。
+
+Railway / Heroku 等平台可直接使用根目录的 `Procfile`。
 
 ---
 
