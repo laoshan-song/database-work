@@ -6,7 +6,7 @@ databases:
 
 services:
   - type: web
-    name: database-work
+    name: srdp-platform-2026
     runtime: python
     plan: free
     buildCommand: pip install -r requirements-prod.txt
